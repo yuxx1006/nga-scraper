@@ -1,0 +1,19 @@
+version: "3"
+services:
+  python:
+    container_name : python
+    build :
+      context : ./python
+      dockerfile : Dockerfile
+    volumes: 
+      - ./shm/fflogs.py:/fflogs.py
+    command: python /fflogs.py
+    depends_on:
+      - chrome
+  chrome:
+    image: selenium/standalone-chrome:latest
+    ports:
+      - "4444:4444"
+    shm_size: 2g
+
+  

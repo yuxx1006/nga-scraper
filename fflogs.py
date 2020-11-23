@@ -6,9 +6,7 @@ import os
 from selenium.webdriver import Chrome, Firefox, ActionChains
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.firefox.options import Options
-import pdb
 
-from datetime import datetime
 from time import sleep
 from lxml import etree
 import pandas as pd
