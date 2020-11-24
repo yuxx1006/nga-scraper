@@ -1,13 +1,10 @@
-version: "3"
+version: "2.0"
 services:
-  python:
-    container_name : python
-    build :
-      context : ./python
-      dockerfile : Dockerfile
-    volumes: 
-      - ./shm/fflogs.py:/fflogs.py
-    command: python /fflogs.py
+  spider:
+    image: fflogs:1.0
+    volumes:
+      - ./fflogs.py:/code/fflogs.py  # 这里把刚刚的代码映射到这个目录
+    command: python /code/fflogs.py  # 定义启动容器执行的命令
     depends_on:
       - chrome
   chrome:
@@ -15,5 +12,4 @@ services:
     ports:
       - "4444:4444"
     shm_size: 2g
-
   
