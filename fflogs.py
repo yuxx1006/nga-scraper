@@ -2,18 +2,38 @@
 # monkey.patch_all()
 # from gevent.pywsgi import WSGIServer
 from selenium import webdriver
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-# from selenium.webdriver import Chrome, Firefox, ActionChains
+# from selenium.webdriver import Firefox
+from selenium.webdriver.chrome.options import Options
 import time
 from lxml import etree
-from flask import Flask
+from flask import Flask, request, Response
 import json
 
 #const
-URL = "https://cn.fflogs.com/character/cn"
+URL = "https://cn.fflogs.com/character/"
 HEADERS = ['boss', 'best_percent', 'highest_dps', 'kills',
            'fastest', 'med', 'score', 'rank']
+
+browser = None
 app = Flask(__name__)
+
+
+def get_chrome():
+    # browser = webdriver.Remote(
+    #     command_executor="http://39.102.87.81:4444/wd/hub",
+    #     desired_capabilities=DesiredCapabilities.CHROME
+    # )
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_prefs = {}
+    chrome_options.experimental_options["prefs"] = chrome_prefs
+    chrome_prefs["profile.default_content_settings"] = {"images": 2}
+    browser = webdriver.Chrome(options=chrome_options)
+    # browser = Firefox()
+    return browser
+
 
 # -------------- Test Routes ----------------
 @app.route('/', methods=['GET'])
@@ -22,19 +42,32 @@ def home():
 <p>The connection works</p>'''
 
 
-@app.route('/cnlogs/server/<server_name>/role/<role_name>/zone/<zone>', methods=['GET','POST'])
-def scrape_page(server_name, role_name, zone):
-    start = time.time()
-    browser = webdriver.Remote(
-        command_executor="http://localhost:4444/wd/hub",
-        desired_capabilities=DesiredCapabilities.CHROME
-    )
-    # browser = Firefox()
-    browser.implicitly_wait(1)
-    browser.maximize_window()
+@app.route('/server/<server_name>/role/<role_name>', methods=['GET', 'POST'])
+def scrape_fflogs(server_name, role_name):
+    # start = time.time()
+    if 'region' in request.args:
+        region = request.args['region']
+    else:
+        region = 'cn'
+    if 'zone' in request.args:
+        zone = request.args['zone']
+    else:
+        zone = '33' # default value
+    if 'spec' in request.args:
+        spec = request.args['spec']
+    else:
+        spec = ''
 
-    browser.get(URL + "/{}/{}#zone={}".format(server_name, role_name, zone))
-    time.sleep(2)
+    global browser
+    try:
+        if browser is None:
+            browser = get_chrome()
+            print("retrieve Chrome browsers")
+    except:
+        raise RuntimeError('webdriver is not available.')
+
+    browser.get(URL + "{}/{}/{}#zone={}&spec={}".format(region, server_name, role_name, zone, spec))
+    time.sleep(1)
     parser = etree.HTML(browser.page_source)
     rows = parser.xpath('//table[@id="boss-table-{}"]/tbody/tr'.format(zone))
     fflogs = []
@@ -53,15 +86,19 @@ def scrape_page(server_name, role_name, zone):
             fflogs.append(data)
         except Exception as e:
             raise RuntimeError("Failed to scrape data")
-    print(fflogs)
+    # print(fflogs)
     # closing the browser window
-    browser.close()
-    print("--- % seconds ---" % (time.time() - start))
+    # browser.close()
+    # print("--- % seconds ---" % (time.time() - start))
     try:
-        return json.dumps({'fflogs': fflogs}, indent=4, sort_keys=True, ensure_ascii=False)
+        json_response = json.dumps({'fflogs': fflogs}, indent=4, sort_keys=True, ensure_ascii=False)
     except Exception as error:
-        return json.dumps({'error': error})
-
+        json_response = json.dumps({'error': error})
+    response = Response(json_response, content_type='application/json; charset=utf-8')
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST'
+    response.status_code = 200
+    return response
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -69,6 +106,12 @@ def page_not_found(e):
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5015, debug=True)
+    # chrome driver
+    browser = get_chrome()
+    browser.implicitly_wait(5)
+    browser.maximize_window()
+
+    app.run(host='0.0.0.0', port=5015, debug=False, threaded=False)
     # http_server = WSGIServer(('0.0.0.0', 5015), app)
     # http_server.serve_forever()
+

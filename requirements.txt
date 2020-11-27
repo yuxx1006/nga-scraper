@@ -2,3 +2,5 @@ gevent==20.9.0
 flask==1.1.2
 selenium==3.141.0
 lxml==4.6.1
+jieba==0.42.1
+wordcloud==1.8.1
