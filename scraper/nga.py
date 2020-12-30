@@ -14,19 +14,14 @@ from time import sleep
 from lxml import etree
 import pandas as pd
 
-
-
-url = "https://bbs.nga.cn/read.php?tid=18887364"
+# url = "https://bbs.nga.cn/read.php?tid=18887364"
 
 browser = Firefox()
 browser.implicitly_wait(10)
 browser.maximize_window()
 
-
 headers = ['uid', 'user_level', 'user_prestige', 'user_famous',
-			'register_date','publish_date','publish_source', 'content']
-
-
+			'register_date', 'publish_date', 'publish_source', 'content']
 my_table = pd.DataFrame(columns=headers)
 
 REPETITIONS = 50
