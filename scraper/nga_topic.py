@@ -16,12 +16,12 @@ import random
 
 HEADERS = ['topic_id', 'uid', 'user_level', 'user_prestige', 'user_famous',
            'register_date', 'publish_date', 'publish_source', 'content',
-           'quote_author', 'quote_post_time', 'quote', 'image_url']
+           'quote_author', 'quote_post_time', 'quote', 'image_url', 'is_master']
 CSV_COLUMNS = ['topic_id', 'topic_url', 'topic_tag', 'topic_description',
                'reply_count', 'author_id', 'author_name',
                'post_time', 'last_reply_by', 'last_reply_time',
                'page_count']
-CSV = './nga_fflogs_100.csv'
+CSV = './nga_arknights_2.csv'
 # CSV = './nga_test.csv'
 THREAD = 'thread'
 my_table = None
@@ -40,8 +40,12 @@ def get_page_source(my_t, tid, url, index):
     # collecting all container into a list and going through each one
     all_posts = parser.xpath('//div[@id="m_posts_c"]/table[@class="forumbox postbox"]')
 
-    for table in all_posts:
+    for num, table in enumerate(all_posts):
         try:
+            if num == 0 and index == 1:
+                is_master = True
+            else:
+                is_master = False
             # user id
             if table.xpath('.//a[@name="uid"]'):
                 uid = table.xpath('.//a[@name="uid"]/text()')[0]
@@ -171,7 +175,8 @@ def get_page_source(my_t, tid, url, index):
             data = {"topic_id": tid, "uid": uid, "user_level": ulevel, "user_prestige": uprestige,
                     "user_famous": ufamous, "register_date": uregister, "publish_date": pubdate,
                     "publish_source": source, "content": content, "quote_author": quote_author,
-                    "quote_post_time": quote_post_time, "quote": quote, "image_url": images}
+                    "quote_post_time": quote_post_time, "quote": quote, "image_url": images,
+                    "is_master": is_master}
             my_t = my_t.append(data, ignore_index=True)
 
         except Exception as e:
@@ -188,6 +193,7 @@ if __name__ == "__main__":
 
     my_table = pd.DataFrame(columns=HEADERS)
     topic_table = pd.read_csv(CSV, names=CSV_COLUMNS)
+    topic_table.dropna(subset=['topic_url'], inplace=True)
     # print(topic_table.head(5))
     for i, row in topic_table.iterrows():
         if i == 0: continue
@@ -209,7 +215,7 @@ if __name__ == "__main__":
                 my_table = get_page_source(my_table, topic_id, topic_url, index=j)
 
     # print(my_table.head())
-    my_table.to_csv(r'./topics/fflogs_topics.csv', header=HEADERS, index=None, sep=',', mode='a')
+    my_table.to_csv(r'./arknights_topics.csv', header=HEADERS, index=None, sep=',', mode='a')
 
     # closing the browser window
     browser.close()

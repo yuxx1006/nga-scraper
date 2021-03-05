@@ -13,7 +13,7 @@ from lxml import etree
 import pandas as pd
 import random
 
-url = "https://bbs.nga.cn/thread.php?fid=-362960"
+url = "https://bbs.nga.cn/thread.php?fid=-8180483"
 browser = Firefox()
 browser.implicitly_wait(10)
 browser.maximize_window()
@@ -24,7 +24,7 @@ headers = ['topic_id', 'topic_url', 'topic_tag', 'topic_description',
            'post_time', 'last_reply_by', 'last_reply_time',
            'page_count']
 my_table = pd.DataFrame(columns=headers)
-REPETITIONS = 126
+REPETITIONS = 10
 for i in range(REPETITIONS):
     if i == 0:
         continue
@@ -156,4 +156,4 @@ for i in range(REPETITIONS):
 browser.close()
 print(my_table.head())
 
-my_table.to_csv(r'./nga_fflogs.csv', header=headers, index=None, sep=',', mode='a')
+my_table.to_csv(r'./nga_yingzhishi.csv', header=headers, index=None, sep=',', mode='a')

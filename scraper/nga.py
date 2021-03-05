@@ -14,7 +14,7 @@ from time import sleep
 from lxml import etree
 import pandas as pd
 
-# url = "https://bbs.nga.cn/read.php?tid=18887364"
+url = "https://bbs.nga.cn/read.php?tid=25051544"
 
 browser = Firefox()
 browser.implicitly_wait(10)
@@ -24,13 +24,13 @@ headers = ['uid', 'user_level', 'user_prestige', 'user_famous',
 			'register_date', 'publish_date', 'publish_source', 'content']
 my_table = pd.DataFrame(columns=headers)
 
-REPETITIONS = 50
+REPETITIONS = 6
 for i in range(REPETITIONS):
 	if i == 0: 
 		continue
 
 	if i == 1 or i == 2:
-		sleep(10)
+		sleep(8)
 	else:
 		sleep(3)
 
@@ -38,7 +38,7 @@ for i in range(REPETITIONS):
 
 	# browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 	browser.get(url+"&page={}".format(i))
-	sleep(10)
+	sleep(6)
 
 	parser = etree.HTML(browser.page_source)
 	# result = etree.tostring(parser)
@@ -93,7 +93,7 @@ browser.close()
 print(my_table.head())
 
 
-my_table.to_csv(r'./nga_zhao.csv', header=headers, index=None, sep=',', mode='a')
+my_table.to_csv(r'./nga_mh.csv', header=headers, index=None, sep=',', mode='a')
 
 
 
